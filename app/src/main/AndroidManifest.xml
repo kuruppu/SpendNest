@@ -41,6 +41,13 @@
             </intent-filter>
         </receiver>
 
+        <!-- Category Action Receiver -->
+        <receiver
+            android:name=".receiver.CategoryActionReceiver"
+            android:enabled="true"
+            android:exported="false">
+        </receiver>
+
         <!-- WorkManager -->
         <provider
             android:name="androidx.startup.InitializationProvider"

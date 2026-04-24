@@ -9,7 +9,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.expense.tracker.MainActivity
-import com.expense.tracker.R
+import com.expense.tracker.data.entity.Category
+import com.expense.tracker.receiver.CategoryActionReceiver
 
 object NotificationHelper {
     private const val CHANNEL_ID_TRANSACTIONS = "expense_transactions"
@@ -55,8 +56,11 @@ object NotificationHelper {
         context: Context,
         transactionId: Long,
         amount: Double,
-        isCashWithdrawal: Boolean
+        isCashWithdrawal: Boolean,
+        categories: List<Category>
     ) {
+        val notificationId = NOTIFICATION_ID_TRANSACTION + transactionId.toInt()
+
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("transaction_id", transactionId)
@@ -76,9 +80,9 @@ object NotificationHelper {
             "Card Payment Detected"
         }
 
-        val message = "LKR ${String.format("%.2f", amount)}\nWhat was this expense for?"
+        val message = "LKR ${String.format("%.2f", amount)} - What was this for?"
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID_TRANSACTIONS)
+        val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID_TRANSACTIONS)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(message)
@@ -86,12 +90,38 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .build()
+
+        // Add category action buttons (max 3 per notification in Android)
+        // Show most common categories as quick actions
+        val priorityCategories = categories.filter {
+            it.name in listOf("Food", "Transport", "Bills", "Kids", "Savings", "Other")
+        }.take(3)
+
+        priorityCategories.forEach { category ->
+            val categoryIntent = Intent(context, CategoryActionReceiver::class.java).apply {
+                putExtra("transaction_id", transactionId)
+                putExtra("category_id", category.id)
+                putExtra("notification_id", notificationId)
+            }
+
+            val categoryPendingIntent = PendingIntent.getBroadcast(
+                context,
+                (transactionId.toInt() * 1000 + category.id.toInt()),
+                categoryIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            notificationBuilder.addAction(
+                0, // No icon
+                category.name,
+                categoryPendingIntent
+            )
+        }
 
         if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
             NotificationManagerCompat.from(context).notify(
-                NOTIFICATION_ID_TRANSACTION + transactionId.toInt(),
-                notification
+                notificationId,
+                notificationBuilder.build()
             )
         }
     }

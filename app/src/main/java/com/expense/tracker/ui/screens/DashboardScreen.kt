@@ -15,6 +15,7 @@ import com.expense.tracker.data.repository.ExpenseRepository
 import com.expense.tracker.domain.model.CategoryWithBudget
 import com.expense.tracker.ui.components.CategoryBudgetCard
 import com.expense.tracker.ui.components.SpendingPieChart
+import com.expense.tracker.ui.components.UncategorizedTransactionsSection
 import com.expense.tracker.utils.BillingCycleCalculator
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -35,6 +36,7 @@ fun DashboardScreen(
     val preferences by repository.getUserPreferences().collectAsState(initial = null)
     val categories by repository.getMainCategories().collectAsState(initial = emptyList())
     val budgets by repository.getAllBudgets().collectAsState(initial = emptyList())
+    val uncategorizedTransactions by repository.getUncategorizedTransactions().collectAsState(initial = emptyList())
 
     val categoriesWithBudget = remember(categories, budgets, preferences) {
         mutableStateOf<List<CategoryWithBudget>>(emptyList())
@@ -214,6 +216,17 @@ fun DashboardScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // Uncategorized Transactions
+            if (uncategorizedTransactions.isNotEmpty()) {
+                item {
+                    UncategorizedTransactionsSection(
+                        uncategorizedTransactions = uncategorizedTransactions,
+                        categories = categories,
+                        repository = repository
+                    )
                 }
             }
 

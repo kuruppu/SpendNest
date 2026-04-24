@@ -15,6 +15,7 @@ import com.expense.tracker.utils.SmsParser
 import com.expense.tracker.worker.CashExpenseReminderWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -56,34 +57,33 @@ class SmsReceiver : BroadcastReceiver() {
                         database.userPreferencesDao()
                     )
 
-                    // Get the appropriate category
-                    val categoryName = when (parsedTransaction.type) {
-                        TransactionType.CASH_WITHDRAWAL -> "Cash Expense"
-                        TransactionType.CARD_PAYMENT -> "Other" // Will be categorized by user
-                        else -> "Other"
-                    }
+                    // Use "Other" as temporary placeholder for uncategorized transactions
+                    // But mark as NOT categorized so user knows they need to assign
+                    val tempCategory = repository.getCategoryByName("Other")
 
-                    val category = repository.getCategoryByName(categoryName)
-
-                    if (category != null) {
+                    if (tempCategory != null) {
                         val transaction = Transaction(
                             amount = parsedTransaction.amount,
-                            categoryId = category.id,
+                            categoryId = tempCategory.id, // Temporary
                             timestamp = parsedTransaction.timestamp,
                             type = parsedTransaction.type,
                             availableBalance = parsedTransaction.availableBalance,
-                            isCategorized = false,
+                            isCategorized = false, // Mark as uncategorized
                             source = TransactionSource.SMS
                         )
 
                         val transactionId = repository.insertTransaction(transaction)
 
-                        // Show notification
+                        // Get all main categories for notification actions
+                        val categories = repository.getMainCategories().first()
+
+                        // Show notification with category buttons
                         NotificationHelper.showTransactionNotification(
                             context = context,
                             transactionId = transactionId,
                             amount = parsedTransaction.amount,
-                            isCashWithdrawal = parsedTransaction.type == TransactionType.CASH_WITHDRAWAL
+                            isCashWithdrawal = parsedTransaction.type == TransactionType.CASH_WITHDRAWAL,
+                            categories = categories
                         )
 
                         // Schedule reminder for cash withdrawals
