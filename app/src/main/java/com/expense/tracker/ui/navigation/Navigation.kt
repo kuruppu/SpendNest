@@ -18,6 +18,7 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object AddTransaction : Screen("add_transaction")
     object BudgetSetup : Screen("budget_setup")
+    object BudgetManagement : Screen("budget_management")
 }
 
 @Composable
@@ -46,6 +47,9 @@ fun AppNavigation(
                 },
                 onBudgetSetupClick = {
                     navController.navigate(Screen.BudgetSetup.route)
+                },
+                onBudgetManagementClick = {
+                    navController.navigate(Screen.BudgetManagement.route)
                 }
             )
         }
@@ -89,6 +93,13 @@ fun AppNavigation(
                 repository = repository,
                 onBackClick = { navController.popBackStack() },
                 onComplete = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.BudgetManagement.route) {
+            BudgetManagementScreen(
+                repository = repository,
+                onBackClick = { navController.popBackStack() }
             )
         }
     }

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.expense.tracker.data.repository.ExpenseRepository
 import com.expense.tracker.domain.model.CategoryWithBudget
 import com.expense.tracker.ui.components.CategoryBudgetCard
+import com.expense.tracker.ui.components.SpendingPieChart
 import com.expense.tracker.utils.BillingCycleCalculator
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -27,8 +28,10 @@ fun DashboardScreen(
     onHistoryClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onAddTransactionClick: () -> Unit,
-    onBudgetSetupClick: () -> Unit
+    onBudgetSetupClick: () -> Unit,
+    onBudgetManagementClick: () -> Unit = {}
 ) {
+    var showFabMenu by remember { mutableStateOf(false) }
     val preferences by repository.getUserPreferences().collectAsState(initial = null)
     val categories by repository.getMainCategories().collectAsState(initial = emptyList())
     val budgets by repository.getAllBudgets().collectAsState(initial = emptyList())
@@ -90,8 +93,57 @@ fun DashboardScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddTransactionClick) {
-                Icon(Icons.Default.Add, "Add Transaction")
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (showFabMenu) {
+                    // Manage Budgets FAB
+                    SmallFloatingActionButton(
+                        onClick = {
+                            showFabMenu = false
+                            onBudgetManagementClick()
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.AccountBalance, "Manage Budgets", modifier = Modifier.size(20.dp))
+                            Text("Budgets", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+
+                    // Add Expense FAB
+                    SmallFloatingActionButton(
+                        onClick = {
+                            showFabMenu = false
+                            onAddTransactionClick()
+                        },
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.ShoppingCart, "Add Expense", modifier = Modifier.size(20.dp))
+                            Text("Expense", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+
+                // Main FAB
+                FloatingActionButton(
+                    onClick = { showFabMenu = !showFabMenu }
+                ) {
+                    Icon(
+                        if (showFabMenu) Icons.Default.Close else Icons.Default.Add,
+                        if (showFabMenu) "Close" else "Add"
+                    )
+                }
             }
         }
     ) { padding ->
@@ -162,6 +214,15 @@ fun DashboardScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // Pie Chart
+            if (preferences?.showPieCharts == true && categoriesWithBudget.value.isNotEmpty()) {
+                item {
+                    SpendingPieChart(
+                        categoriesWithBudget = categoriesWithBudget.value
+                    )
                 }
             }
 

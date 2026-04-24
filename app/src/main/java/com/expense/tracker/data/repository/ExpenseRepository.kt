@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
 class ExpenseRepository(
-    private val categoryDao: CategoryDao,
-    private val transactionDao: TransactionDao,
-    private val budgetDao: BudgetDao,
-    private val preferencesDao: UserPreferencesDao
+    val categoryDao: CategoryDao,
+    val transactionDao: TransactionDao,
+    val budgetDao: BudgetDao,
+    val preferencesDao: UserPreferencesDao
 ) {
     // Categories
     fun getMainCategories(): Flow<List<Category>> = categoryDao.getMainCategories()
