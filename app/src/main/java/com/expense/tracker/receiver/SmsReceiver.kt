@@ -97,7 +97,7 @@ class SmsReceiver : BroadcastReceiver() {
 
                         Log.d(TAG, "Transaction saved with ID: $transactionId")
                     } else {
-                        Log.e(TAG, "Category not found: $categoryName")
+                        Log.e(TAG, "Temporary category 'Other' not found")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error saving transaction", e)
