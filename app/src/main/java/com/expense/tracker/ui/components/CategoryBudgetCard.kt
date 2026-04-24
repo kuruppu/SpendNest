@@ -9,6 +9,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.expense.tracker.domain.model.CategoryWithBudget
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryBudgetCard(
     categoryBudget: CategoryWithBudget,

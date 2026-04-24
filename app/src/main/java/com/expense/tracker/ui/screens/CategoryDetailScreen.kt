@@ -16,6 +16,7 @@ import com.expense.tracker.domain.model.SubcategorySpending
 import com.expense.tracker.utils.BillingCycleCalculator
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.first
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -17,6 +17,7 @@ import com.expense.tracker.ui.components.CategoryBudgetCard
 import com.expense.tracker.utils.BillingCycleCalculator
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.first
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,11 +52,8 @@ fun DashboardScreen(
                         ((spent / budgetAmount) * 100).toInt()
                     } else 0
 
-                    val subcategories = repository.getSubCategories(category.id)
-                    var hasSubcategories = false
-                    subcategories.collect { list ->
-                        hasSubcategories = list.isNotEmpty()
-                    }
+                    val subcategoriesList = repository.getSubCategories(category.id).first()
+                    val hasSubcategories = subcategoriesList.isNotEmpty()
 
                     CategoryWithBudget(
                         categoryId = category.id,
