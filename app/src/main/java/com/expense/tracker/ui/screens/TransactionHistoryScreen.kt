@@ -346,33 +346,3 @@ fun EditTransactionDialog(
         )
     }
 }
-
-@Composable
-fun CategoryPickerDialog(
-    categories: List<Category>,
-    onDismiss: () -> Unit,
-    onCategorySelected: (Category) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select Category") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                categories.forEach { category ->
-                    OutlinedButton(
-                        onClick = { onCategorySelected(category) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(category.name)
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-}
