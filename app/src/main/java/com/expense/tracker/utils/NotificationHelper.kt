@@ -91,17 +91,61 @@ object NotificationHelper {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Add category action buttons (max 3 per notification in Android)
+        // Add "Ignore" action button
+        val ignoreIntent = Intent(context, CategoryActionReceiver::class.java).apply {
+            putExtra("transaction_id", transactionId)
+            putExtra("action", "ignore")
+            putExtra("notification_id", notificationId)
+        }
+
+        val ignorePendingIntent = PendingIntent.getBroadcast(
+            context,
+            (transactionId.toInt() * 10000),
+            ignoreIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        notificationBuilder.addAction(
+            0, // No icon
+            "Ignore",
+            ignorePendingIntent
+        )
+
+        // Add "Split" action for cash withdrawals
+        if (isCashWithdrawal) {
+            val splitIntent = Intent(context, CategoryActionReceiver::class.java).apply {
+                putExtra("transaction_id", transactionId)
+                putExtra("action", "split")
+                putExtra("notification_id", notificationId)
+            }
+
+            val splitPendingIntent = PendingIntent.getBroadcast(
+                context,
+                (transactionId.toInt() * 10000 + 1),
+                splitIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            notificationBuilder.addAction(
+                0, // No icon
+                "Split",
+                splitPendingIntent
+            )
+        }
+
+        // Add category action buttons (max 3 per notification in Android, but we've used 1-2 already)
         // Show most common categories as quick actions
+        val maxCategoryButtons = if (isCashWithdrawal) 1 else 2
         val priorityCategories = categories.filter {
             it.name in listOf("Food", "Transport", "Bills", "Kids", "Savings", "Other")
-        }.take(3)
+        }.take(maxCategoryButtons)
 
         priorityCategories.forEach { category ->
             val categoryIntent = Intent(context, CategoryActionReceiver::class.java).apply {
                 putExtra("transaction_id", transactionId)
                 putExtra("category_id", category.id)
                 putExtra("notification_id", notificationId)
+                putExtra("action", "categorize")
             }
 
             val categoryPendingIntent = PendingIntent.getBroadcast(

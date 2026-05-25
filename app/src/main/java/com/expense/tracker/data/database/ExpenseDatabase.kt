@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.expense.tracker.data.dao.*
 import com.expense.tracker.data.entity.*
@@ -19,7 +20,7 @@ import kotlinx.coroutines.launch
         Budget::class,
         UserPreferences::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -33,6 +34,18 @@ abstract class ExpenseDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: ExpenseDatabase? = null
 
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add new columns to transactions table
+                database.execSQL("ALTER TABLE transactions ADD COLUMN isIgnored INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE transactions ADD COLUMN parentTransactionId INTEGER DEFAULT NULL")
+                database.execSQL("ALTER TABLE transactions ADD COLUMN isSplit INTEGER NOT NULL DEFAULT 0")
+
+                // Create index on parentTransactionId for better query performance
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_parentTransactionId ON transactions(parentTransactionId)")
+            }
+        }
+
         fun getDatabase(context: Context): ExpenseDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -41,6 +54,8 @@ abstract class ExpenseDatabase : RoomDatabase() {
                     "expense_tracker_database"
                 )
                     .addCallback(DatabaseCallback())
+                    .addMigrations(MIGRATION_1_2)
+                    .fallbackToDestructiveMigration() // For development - remove in production
                     .build()
                 INSTANCE = instance
                 instance

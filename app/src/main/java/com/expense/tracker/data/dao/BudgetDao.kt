@@ -9,6 +9,9 @@ interface BudgetDao {
     @Query("SELECT * FROM budgets WHERE isActive = 1")
     fun getAllBudgets(): Flow<List<Budget>>
 
+    @Query("SELECT * FROM budgets WHERE isActive = 1")
+    suspend fun getAllBudgetsSync(): List<Budget>
+
     @Query("SELECT * FROM budgets WHERE categoryId = :categoryId AND isActive = 1 LIMIT 1")
     suspend fun getBudgetForCategory(categoryId: Long): Budget?
 

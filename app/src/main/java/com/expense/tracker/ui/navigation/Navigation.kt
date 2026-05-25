@@ -20,6 +20,9 @@ sealed class Screen(val route: String) {
     object BudgetSetup : Screen("budget_setup")
     object BudgetManagement : Screen("budget_management")
     object CategoryManagement : Screen("category_management")
+    object SplitTransaction : Screen("split_transaction/{transactionId}") {
+        fun createRoute(transactionId: Long) = "split_transaction/$transactionId"
+    }
 }
 
 @Composable
@@ -51,6 +54,9 @@ fun AppNavigation(
                 },
                 onBudgetManagementClick = {
                     navController.navigate(Screen.BudgetManagement.route)
+                },
+                onSplitTransaction = { transactionId ->
+                    navController.navigate(Screen.SplitTransaction.createRoute(transactionId))
                 }
             )
         }
@@ -111,6 +117,18 @@ fun AppNavigation(
             CategoryManagementScreen(
                 repository = repository,
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.SplitTransaction.route,
+            arguments = listOf(navArgument("transactionId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val transactionId = backStackEntry.arguments?.getLong("transactionId") ?: return@composable
+            SplitTransactionScreen(
+                transactionId = transactionId,
+                repository = repository,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

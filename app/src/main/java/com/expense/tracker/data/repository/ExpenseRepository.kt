@@ -37,7 +37,13 @@ class ExpenseRepository(
 
     suspend fun insertTransaction(transaction: Transaction): Long = transactionDao.insertTransaction(transaction)
     suspend fun updateTransaction(transaction: Transaction) = transactionDao.updateTransaction(transaction)
+    suspend fun deleteTransaction(transaction: Transaction) = transactionDao.deleteTransaction(transaction)
     suspend fun getTransactionById(id: Long): Transaction? = transactionDao.getTransactionById(id)
+
+    // Split transactions
+    fun getSplitTransactions(parentId: Long): Flow<List<Transaction>> = transactionDao.getSplitTransactions(parentId)
+    suspend fun getSplitTransactionsSync(parentId: Long): List<Transaction> = transactionDao.getSplitTransactionsSync(parentId)
+    suspend fun deleteSplitTransactions(parentId: Long) = transactionDao.deleteSplitTransactions(parentId)
 
     // Budgets
     fun getAllBudgets(): Flow<List<Budget>> = budgetDao.getAllBudgets()

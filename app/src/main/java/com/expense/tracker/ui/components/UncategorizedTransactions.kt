@@ -23,7 +23,8 @@ fun UncategorizedTransactionsSection(
     uncategorizedTransactions: List<Transaction>,
     categories: List<Category>,
     repository: ExpenseRepository,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSplitTransaction: (Long) -> Unit = {}
 ) {
     if (uncategorizedTransactions.isEmpty()) return
 
@@ -100,6 +101,19 @@ fun UncategorizedTransactionsSection(
                     showCategoryDialog = false
                     selectedTransaction = null
                 }
+            },
+            onIgnore = {
+                scope.launch {
+                    val updated = selectedTransaction!!.copy(isIgnored = true)
+                    repository.updateTransaction(updated)
+                    showCategoryDialog = false
+                    selectedTransaction = null
+                }
+            },
+            onSplit = {
+                onSplitTransaction(selectedTransaction!!.id)
+                showCategoryDialog = false
+                selectedTransaction = null
             }
         )
     }
@@ -146,8 +160,12 @@ fun QuickCategoryDialog(
     transaction: Transaction,
     categories: List<Category>,
     onDismiss: () -> Unit,
-    onCategorySelected: (Category) -> Unit
+    onCategorySelected: (Category) -> Unit,
+    onIgnore: () -> Unit = {},
+    onSplit: () -> Unit = {}
 ) {
+    val isCashWithdrawal = transaction.type == com.expense.tracker.data.entity.TransactionType.CASH_WITHDRAWAL
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -158,10 +176,50 @@ fun QuickCategoryDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Text(
+                    text = if (isCashWithdrawal) "Cash Withdrawal" else "Card Payment",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Action buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            onIgnore()
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Ignore")
+                    }
+                    if (isCashWithdrawal) {
+                        OutlinedButton(
+                            onClick = {
+                                onSplit()
+                                onDismiss()
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Split")
+                        }
+                    }
+                }
+
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                Text(
+                    text = "Select Category:",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
                 categories.forEach { category ->
                     Button(
                         onClick = { onCategorySelected(category) },

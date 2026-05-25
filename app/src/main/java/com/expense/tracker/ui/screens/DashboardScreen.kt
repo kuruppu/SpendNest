@@ -30,7 +30,8 @@ fun DashboardScreen(
     onSettingsClick: () -> Unit,
     onAddTransactionClick: () -> Unit,
     onBudgetSetupClick: () -> Unit,
-    onBudgetManagementClick: () -> Unit = {}
+    onBudgetManagementClick: () -> Unit = {},
+    onSplitTransaction: (Long) -> Unit = {}
 ) {
     var showFabMenu by remember { mutableStateOf(false) }
     val preferences by repository.getUserPreferences().collectAsState(initial = null)
@@ -225,7 +226,8 @@ fun DashboardScreen(
                     UncategorizedTransactionsSection(
                         uncategorizedTransactions = uncategorizedTransactions,
                         categories = categories,
-                        repository = repository
+                        repository = repository,
+                        onSplitTransaction = onSplitTransaction
                     )
                 }
             }

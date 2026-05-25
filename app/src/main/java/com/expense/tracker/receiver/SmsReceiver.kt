@@ -42,6 +42,12 @@ class SmsReceiver : BroadcastReceiver() {
     }
 
     private fun handleBankSms(context: Context, message: String) {
+        // Check if this is a failed/declined/cancelled transaction
+        if (SmsParser.isFailedTransaction(message)) {
+            Log.d(TAG, "Failed/declined transaction detected - ignoring")
+            return
+        }
+
         val parsedTransaction = SmsParser.parseTransactionSms(message)
 
         if (parsedTransaction != null) {

@@ -16,7 +16,7 @@ import java.time.LocalDateTime
             onDelete = ForeignKey.RESTRICT
         )
     ],
-    indices = [Index("categoryId"), Index("timestamp")]
+    indices = [Index("categoryId"), Index("timestamp"), Index("parentTransactionId")]
 )
 data class Transaction(
     @PrimaryKey(autoGenerate = true)
@@ -28,7 +28,10 @@ data class Transaction(
     val description: String? = null,
     val availableBalance: Double? = null,
     val isCategorized: Boolean = false, // For cash withdrawals
-    val source: TransactionSource = TransactionSource.MANUAL
+    val source: TransactionSource = TransactionSource.MANUAL,
+    val isIgnored: Boolean = false, // For ignored/cancelled transactions
+    val parentTransactionId: Long? = null, // For split transactions (links to parent)
+    val isSplit: Boolean = false // True if this is a split transaction
 )
 
 enum class TransactionType {

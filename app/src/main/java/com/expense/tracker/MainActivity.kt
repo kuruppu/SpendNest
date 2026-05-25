@@ -79,6 +79,21 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+
+                    // Handle intent extras for split action
+                    androidx.compose.runtime.LaunchedEffect(intent) {
+                        intent?.let {
+                            val action = it.getStringExtra("action")
+                            val transactionId = it.getLongExtra("transaction_id", -1L)
+
+                            if (action == "split" && transactionId != -1L) {
+                                navController.navigate(
+                                    com.expense.tracker.ui.navigation.Screen.SplitTransaction.createRoute(transactionId)
+                                )
+                            }
+                        }
+                    }
+
                     AppNavigation(
                         navController = navController,
                         repository = repository

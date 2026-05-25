@@ -33,32 +33,25 @@ class DailyReminderWorker(
                 val cycleStartDay = preferences.billingCycleStartDay
                 val (startDate, endDate) = BillingCycleCalculator.getCurrentCycleDates(cycleStartDay)
 
-                // Calculate total budget
-                val budgets = repository.getAllBudgets()
-                var totalBudget = 0.0
+                // Calculate total budget from all budgets
+                val allBudgets = database.budgetDao().getAllBudgetsSync()
+                val totalBudget = allBudgets.sumOf { it.amount }
 
-                // We can't collect Flow synchronously in Worker, so let's use a different approach
-                // For now, we'll calculate based on transactions only
+                // Calculate total spent (excluding ignored transactions)
                 val totalSpent = repository.getTotalSpentInRange(startDate, endDate)
 
-                // Get all budgets and sum them
-                // Note: In real implementation, you'd want to convert Flow to synchronous call
-                val allCategories = database.categoryDao().getMainCategories()
-
-                // For simplicity in this worker, we'll show remaining based on a fixed calculation
-                // In production, you'd want to properly handle this
+                // Calculate remaining amount
+                val remainingAmount = totalBudget - totalSpent
 
                 val cycleDescription = BillingCycleCalculator.getCycleDescription(cycleStartDay)
 
-                // For now, let's just show total spent
-                // You can enhance this to show actual remaining budget
                 NotificationHelper.showDailyReminder(
                     context = applicationContext,
-                    remainingAmount = totalSpent, // This should be (totalBudget - totalSpent)
+                    remainingAmount = remainingAmount,
                     cycleDescription = cycleDescription
                 )
 
-                Log.d("DailyReminderWorker", "Daily reminder sent")
+                Log.d("DailyReminderWorker", "Daily reminder sent: Budget=$totalBudget, Spent=$totalSpent, Remaining=$remainingAmount")
             }
 
             Result.success()

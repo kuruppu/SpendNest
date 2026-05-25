@@ -11,6 +11,13 @@ data class ParsedTransaction(
 )
 
 object SmsParser {
+    // Keywords indicating failed/declined/cancelled transactions
+    private val failureKeywords = listOf(
+        "declined", "failed", "reversed", "unsuccessful",
+        "cancelled", "rejected", "denied", "blocked",
+        "invalid", "not authorized", "insufficient"
+    )
+
     // Common bank SMS patterns
     private val cardPaymentPatterns = listOf(
         // Pattern: "Rs.1,234.56 spent on Card ending 5678"
@@ -92,5 +99,14 @@ object SmsParser {
         }
 
         return isBankSender && hasBankKeywords
+    }
+
+    /**
+     * Checks if the SMS indicates a failed/declined/reversed transaction
+     */
+    fun isFailedTransaction(message: String): Boolean {
+        return failureKeywords.any {
+            message.contains(it, ignoreCase = true)
+        }
     }
 }
