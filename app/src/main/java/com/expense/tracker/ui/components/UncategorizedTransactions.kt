@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.expense.tracker.data.entity.Category
 import com.expense.tracker.data.entity.Transaction
+import com.expense.tracker.data.entity.TransactionType
 import com.expense.tracker.data.repository.ExpenseRepository
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
@@ -164,7 +165,7 @@ fun QuickCategoryDialog(
     onIgnore: () -> Unit = {},
     onSplit: () -> Unit = {}
 ) {
-    val isCashWithdrawal = transaction.type == com.expense.tracker.data.entity.TransactionType.CASH_WITHDRAWAL
+    val isCashWithdrawal = transaction.type == TransactionType.CASH_WITHDRAWAL
 
     AlertDialog(
         onDismissRequest = onDismiss,
